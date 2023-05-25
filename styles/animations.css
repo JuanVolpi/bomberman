@@ -1,0 +1,13 @@
+@keyframes grow-canvas {
+  from {
+    scale: 0;
+  }
+
+  50% {
+    scale: 1;
+  }
+
+  to {
+    scale: 1;
+  }
+}

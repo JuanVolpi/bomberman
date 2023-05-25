@@ -1,0 +1,170 @@
+html {
+  width: 100vw;
+  height: 100vh;
+  background-color: #202020;
+}
+
+* {
+  font-family: "Mogra", cursive;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: clip;
+}
+
+.game_option {
+  background-color: blueviolet;
+  border: 1px solid blueviolet;
+  color: whitesmoke;
+  border-radius: 0.13rem;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  font-size: 1rem;
+  padding: 0.4rem 0.7rem;
+  letter-spacing: 1px;
+  border: none;
+  margin-top: 5px;
+  transition: 0.3s all cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.game_option:hover {
+  margin-top: 0px;
+  /* transform: translateY(3px); */
+  border-bottom: 5px solid;
+  border-color: rgb(98, 29, 163);
+  cursor: pointer;
+}
+
+.game_option:active {
+  border-bottom: 0px solid;
+  transform: translateY(3px);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.game_option:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.game_option:nth-child(1) {
+  background-color: lime;
+  border: 1px solid lime;
+  color: black;
+  border: none;
+}
+
+.game_option:nth-child(1):hover {
+  border-bottom: 5px solid;
+  border-color: rgb(0, 176, 0);
+}
+
+.game_option:nth-child(1):active {
+  border: none;
+  transform: translateY(3px);
+}
+
+.game_option:nth-child(2) {
+  background-color: tomato;
+  border: 1px solid tomato;
+  color: whitesmoke;
+  border: none;
+}
+
+.game_option:nth-child(2):hover {
+  border-bottom: 5px solid;
+  border-color: rgb(173, 67, 49);
+}
+
+.game_option:nth-child(2):active {
+  transform: translateY(3px);
+  border: none;
+}
+
+canvas {
+  border: 2px solid blueviolet;
+  border-radius: 5px;
+  box-shadow: 4px 4px 6px 0px rgba(0, 0, 0, 0.25);
+  transition: 1s all;
+  scale: 0;
+
+  width: 90%;
+  height: 70%;
+
+  margin: auto;
+
+  animation: grow-canvas 2.2s 1s forwards normal
+    cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game_main_section {
+  width: 95%;
+  height: 95%;
+  border: 2px solid gainsboro;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  gap: 10px;
+  background-color: #256bcb;
+  background-image: url("/assets/images/wallpaper.jpg");
+  background-repeat: repeat-x;
+  background-position: bottom;
+  /* place-items: center; */
+  /* align-items: center; */
+}
+
+.game_status {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-radius: 0.3rem;
+  border: 4px solid gainsboro;
+  width: fit-content;
+  margin-top: 1rem;
+  background-color: white;
+}
+
+.game_info {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: space-evenly;
+}
+
+#game_controls {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: space-arround;
+  align-items: center;
+  place-content: center;
+}
+
+.game_info > .info {
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-bottom: 2px solid gainsboro;
+  padding: 0 0.4rem;
+  display: flex;
+  flex-direction: row;
+  place-items: center;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.game_info > .info > p {
+  padding: 0;
+  margin: 0;
+}
+
+#game_score {
+}
+
+#game_time {
+}
