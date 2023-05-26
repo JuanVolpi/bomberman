@@ -127,7 +127,7 @@ async function init() {
 
   getMainGameSection().appendChild(gameCanvas);
 
-  await drawImageIntoCanvasTEST(gameCanvas.getContext("2d"));
+  await drawImageIntoCanvasTEST(gameState.canvasContext);
 }
 
 window.onload = init();
