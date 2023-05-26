@@ -1,3 +1,4 @@
+import { drawImageIntoCanvasTEST } from "./classes.js";
 import { parseSecondsToDateString } from "./utils.js";
 
 const GAME_SECTION_ID = Object.freeze("app");
@@ -18,7 +19,24 @@ const gameState = {
  * @returns {HTMLCanvasElement}
  */
 function createGameCanvas() {
-  const canvas = document.createElement("canvas");
+  const canvas = document.getElementById("canvas");
+
+  const game_section = document.getElementById(GAME_SECTION_ID);
+
+  const styleWidth = window
+    .getComputedStyle(game_section)
+    .width.replace("px", "");
+  const styleHeight = window
+    .getComputedStyle(game_section)
+    .height.replace("px", "");
+
+  let sizes = {
+    w: Number(styleWidth) * 0.9 + "px",
+    h: Number(styleHeight) * 0.78 + "px",
+  };
+
+  canvas.setAttribute("width", sizes.w);
+  canvas.setAttribute("height", sizes.h);
 
   canvas.setAttribute("id", "canvas");
   gameState.canvasContext = canvas.getContext("2d");
@@ -63,6 +81,8 @@ function resetGame() {
   clearInterval(gameState.gameTimerId);
   gameState.gameTimerId = null;
   gameState.time = 0;
+  gameState.score = 0;
+  updateScreenGameInformation();
 }
 
 /**
@@ -81,30 +101,33 @@ function addGameControlButtonEvents() {
   stopButton.onclick = function (event) {
     event.preventDefault();
     stopGame();
-    stopButton.setAttribute("disabled", true);
-    startButton.setAttribute("disabled", false);
+    stopButton.removeAttribute("disabled");
+    startButton.removeAttribute("disabled");
   };
   document.getElementById("reset_button").onclick = function (event) {
     event.preventDefault();
     resetGame();
-    resetButton.setAttribute("disabled", true);
+    // resetButton.setAttribute("disabled", false);
+    startButton.removeAttribute("disabled");
+    stopButton.removeAttribute("disabled");
   };
 }
 
-function init() {
+async function init() {
   //   document.documentElement.requestFullscreen();
 
   updateScreenGameInformation();
   addGameControlButtonEvents();
 
   const gameCanvas = createGameCanvas();
-
   gameState.canvasSize = {
     width: gameCanvas.width,
     height: gameCanvas.height,
   };
 
   getMainGameSection().appendChild(gameCanvas);
+
+  await drawImageIntoCanvasTEST(gameCanvas.getContext("2d"));
 }
 
 window.onload = init();
