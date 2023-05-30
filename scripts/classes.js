@@ -1,59 +1,56 @@
+import { ROBOT_SPRITE_ANIM_LIST } from "./sprite_lists.js";
+
 /**
  *
  * @param {CanvasRenderingContext2D} ctx
  */
 export async function drawImageIntoCanvasTEST(ctx) {
-  const sprites = "/assets/images/sprites/GameAssetssprite.png";
-  const spriteData = "/assets/images/sprites/GameAssets.json";
+  const sprites = "/assets/images/sprites/Robotsprite.png";
+  const spriteData = "/assets/images/sprites/Robot.json";
 
-  const shs = new SpriteSheet(sprites, spriteData);
+  const shs = new SpriteSheetHandler(sprites, spriteData);
   await shs.loadSpriteSheetDataAsync();
-  const spriteDoorLocked = new Sprite(
-    shs.spriteSheet,
-    shs.spriteInformation("Objects/DoorLocked.png"),
-  );
-  const spriteDoorUnLocked = new Sprite(
-    shs.spriteSheet,
-    shs.spriteInformation("Objects/DoorUnlocked.png"),
-  );
-  const spriteDoorOpened = new Sprite(
-    shs.spriteSheet,
-    shs.spriteInformation("Objects/DoorOpen.png"),
-  );
 
-  spriteDoorLocked.drawSprite(ctx, 10, 10, 0.5, 0.5);
+  let robotSprites = new Map();
+  robotSprites.set("idle", shs.spriteLoader(ROBOT_SPRITE_ANIM_LIST.idle));
+  robotSprites.set("dead", shs.spriteLoader(ROBOT_SPRITE_ANIM_LIST.dead));
 
-  let doorSprites = new Map();
-  doorSprites.set("door", [
-    spriteDoorLocked,
-    spriteDoorUnLocked,
-    spriteDoorOpened,
-  ]);
-
-  const porta = new Porta(
-    EntityState.INERT,
+  const robo = new Robot(
+    EntityState.DEAD,
     {
       acl: 0.2,
       sx: 1,
       sy: 1,
-      x: 100,
-      y: 100,
+      x: 1,
+      y: 1,
     },
-    doorSprites,
-    { scaling: 0.5 },
+    robotSprites,
+    { scaling: 0.4 },
   );
 
-  porta.drawSprite(ctx, "door", 2);
+  // robo.drawSprite(ctx, "idle", 0);
+  return robo;
 }
 
-const EntityState = Object.freeze({
-  INERT: Symbol("inert"),
-  PLAYING: Symbol("playing"),
-  DEAD: Symbol("dead"),
-  PAUSED: Symbol("paused"),
+export const EntityState = Object.freeze({
+  INERT: "inert",
+  IDLE: "idle",
+  PLAYING: "playing",
+  DEAD: "dead",
+  PAUSED: "paused",
 });
 
-class Entity {
+/**
+ * @class
+ * @constructor
+ * @public
+ *
+ * @property {EntityState} entiState
+ * @property {{x:number,y:number,sx:number,sy:number,acl:number}} movement
+ * @property {Map} sprites
+ * @property {{scaling:number}} imgProps
+ */
+export class Entity {
   /**
    * @param {EntityState} entiState
    * @param {{x:number,y:number,sx:number,sy:number,acl:number}} movement
@@ -73,12 +70,13 @@ class Entity {
 
   /**
    * @param {CanvasRenderingContext2D} cnvsContext
+   * @param {string} spriteList
    * @param {number} spriteIndex
    */
   drawSprite(cnvsContext, spriteList, spriteIndex) {
     this.sprites
       .get(spriteList)
-      [spriteIndex].drawSprite(
+      [spriteIndex % this.sprites.get(spriteList).length].drawSprite(
         cnvsContext,
         this.movement.x,
         this.movement.y,
@@ -88,7 +86,7 @@ class Entity {
   }
 }
 
-class SpriteSheet {
+export class SpriteSheetHandler {
   /**
    *
    * @param {string} spriteSheetLocation
@@ -120,9 +118,14 @@ class SpriteSheet {
   spriteInformation(spriteName) {
     return this.sheetData[spriteName].frame;
   }
-}
 
-class SpriteAnimation {}
+  spriteLoader(spriteNames) {
+    const sprites = [];
+    for (const name of spriteNames)
+      sprites.push(new Sprite(this.spriteSheet, this.spriteInformation(name)));
+    return sprites;
+  }
+}
 
 class Sprite {
   /**
@@ -165,4 +168,14 @@ class Sprite {
   }
 }
 
-class Porta extends Entity {}
+class Door extends Entity {}
+class Robot extends Entity {
+  update(ctx, index) {
+    this.drawSprite(ctx, this.state.toString(), index);
+  }
+  behave(x, y, ctx, index) {
+    this.movement.x = x;
+    this.movement.y = y;
+    this.update(ctx, index);
+  }
+}

@@ -1,9 +1,10 @@
 import { drawImageIntoCanvasTEST } from "./classes.js";
+import { TESTGameCycle } from "./game_cycle.js";
 import { parseSecondsToDateString } from "./utils.js";
 
 const GAME_SECTION_ID = Object.freeze("app");
 
-const gameState = {
+export const gameState = {
   canvasContext: undefined,
   gameMapEntities: {},
   gameEntities: {},
@@ -127,7 +128,9 @@ async function init() {
 
   getMainGameSection().appendChild(gameCanvas);
 
-  await drawImageIntoCanvasTEST(gameState.canvasContext);
+  const robo = await drawImageIntoCanvasTEST(gameState.canvasContext);
+
+  TESTGameCycle(robo);
 }
 
 window.onload = init();
