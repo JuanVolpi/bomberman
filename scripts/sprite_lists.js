@@ -90,3 +90,28 @@ export const ROBOT_SPRITE_ANIM_LIST = {
     "png/Idle (10).png",
   ],
 };
+
+export const DINO_SPRITE_ANIM_LIST = {
+  dead: [
+    "Dead (1).png",
+    "Dead (2).png",
+    "Dead (3).png",
+    "Dead (4).png",
+    "Dead (5).png",
+    "Dead (6).png",
+    "Dead (7).png",
+    "Dead (8).png",
+  ],
+  idle: [
+    "Idle (1).png",
+    "Idle (2).png",
+    "Idle (3).png",
+    "Idle (4).png",
+    "Idle (5).png",
+    "Idle (6).png",
+    "Idle (7).png",
+    "Idle (8).png",
+    "Idle (9).png",
+    "Idle (10).png",
+  ],
+};

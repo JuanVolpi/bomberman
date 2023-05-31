@@ -1,41 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bomberman</title>
-    <link
-      rel="shortcut icon"
-      href="/assets/images/favicon.ico"
-      type="image/x-icon"
-    />
-    <link rel="stylesheet" href="/styles/imports.css" />
-    <link rel="stylesheet" href="/styles/animations.css" />
-    <link rel="stylesheet" href="/styles/style.css" />
-    <script src="/scripts/main.js" type="module" defer="true"></script>
-  </head>
 
-  <body>
-    <main id="app" class="game_main_section">
-      <section class="game_status">
-        <div class="game_info">
-          <div class="info">
-            <label for="game_score">Score: </label>
-            <p id="game_score"></p>
-          </div>
-          <div class="info">
-            <label for="game_time">Time: </label>
-            <p id="game_time">Time:</p>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bomberman</title>
+  <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/styles/imports.css" />
+  <link rel="stylesheet" href="/styles/animations.css" />
+  <link rel="stylesheet" href="/styles/style.css" />
+  <script src="/scripts/main.js" type="module" defer="true"></script>
+</head>
+
+<body>
+  <main id="app" class="game_main_section">
+    <section class="game_status">
+      <div class="game_info">
+        <div class="info">
+          <label for="game_score">Score: </label>
+          <p id="game_score"></p>
         </div>
-        <div id="game_controls">
-          <button class="game_option" id="start_button">Start</button>
-          <button class="game_option" id="stop_button">Stop</button>
-          <button class="game_option" id="reset_button">Reset</button>
+        <div class="info">
+          <label for="game_time">Time: </label>
+          <p id="game_time">Time:</p>
         </div>
-      </section>
-      <canvas id="canvas"></canvas>
-    </main>
-  </body>
+      </div>
+      <div id="game_controls">
+        <button class="game_option" id="start_button">Start</button>
+        <button class="game_option" id="stop_button">Stop</button>
+        <button class="game_option" id="reset_button">Reset</button>
+      </div>
+    </section>
+    <canvas id="canvas"></canvas>
+  </main>
+</body>
+
 </html>
