@@ -38,6 +38,16 @@ export const ROBOT_SPRITE_ANIM_LIST = {
     "png/Run (7).png",
     "png/Run (8).png",
   ],
+  runReverse: [
+    "png/Run (8).png",
+    "png/Run (7).png",
+    "png/Run (6).png",
+    "png/Run (5).png",
+    "png/Run (4).png",
+    "png/Run (3).png",
+    "png/Run (2).png",
+    "png/Run (1).png",
+  ],
   mele: [
     "png/Melee (1).png",
     "png/Melee (2).png",
@@ -114,4 +124,11 @@ export const DINO_SPRITE_ANIM_LIST = {
     "Idle (9).png",
     "Idle (10).png",
   ],
+};
+
+export const GAME_ASSETS = {
+  borderTile: ["Tiles/BGTile (1).png"],
+  borderTileVertical: ["Tiles/BGTile (2).png"],
+  bgTile: ["Tiles/BGTile (6).png"],
+  box: ["Objects/Box.png"],
 };

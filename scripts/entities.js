@@ -23,37 +23,18 @@ export async function drawImageIntoCanvasTEST(ctx) {
   let robotSprites = new Map();
   robotSprites.set("idle", shs.spriteLoader(ROBOT_SPRITE_ANIM_LIST.idle));
   robotSprites.set("dead", shs.spriteLoader(ROBOT_SPRITE_ANIM_LIST.dead));
+  robotSprites.set("run", shs.spriteLoader(ROBOT_SPRITE_ANIM_LIST.run));
+  robotSprites.set(
+    "runReverse",
+    shs.spriteLoader(ROBOT_SPRITE_ANIM_LIST.runReverse),
+  );
 
   let dinoSprites = new Map();
   // dinoSprites.set("idle", shs.spriteLoader(dino_SPRITE_ANIM_LIST.idle));
   dinoSprites.set("dead", shsDino.spriteLoader(DINO_SPRITE_ANIM_LIST.dead));
 
-  const player = new Player();
-  const controler = new MovementControler();
-
-  window.addEventListener(
-    "keydown",
-    function (event) {
-      controler.keyDownListner(event);
-    },
-    {
-      capture: true,
-    },
-  );
-  window.addEventListener(
-    "keyup",
-    function (event) {
-      controler.keyUpListner(event);
-    },
-    {
-      capture: true,
-    },
-  );
-
-  controler.printKeyStates();
-
   const robo = new Robot(
-    BasicEntityStates.IDLE,
+    "idle",
     {
       acl: 0.2,
       sx: 1,
@@ -65,8 +46,29 @@ export async function drawImageIntoCanvasTEST(ctx) {
     { scaling: 0.45 },
   );
 
+  const player = new Player(robo);
+
+  window.addEventListener(
+    "keydown",
+    function (event) {
+      player.mvHandler.keyDownListner(event);
+    },
+    {
+      capture: true,
+    },
+  );
+  window.addEventListener(
+    "keyup",
+    function (event) {
+      player.mvHandler.keyUpListner(event);
+    },
+    {
+      capture: true,
+    },
+  );
+
   // robo.drawSprite(ctx, "idle", 0);
-  return robo;
+  return player;
 }
 
 export const BasicEntityStates = Object.freeze({
@@ -95,13 +97,25 @@ export class Entity {
    */
   constructor(entiState, movement, sprites, imgProps) {
     this.state = entiState;
+    /**
+     * @property
+     * @type {{x:number,y:number,sx:number,sy:number,acl:number}}
+     */
     this.movement = movement;
     this.sprites = sprites;
     this.imgProps = imgProps;
   }
+
   update() {}
   behave() {
     return null;
+  }
+
+  /**
+   * @param {string} state
+   */
+  updateState(state) {
+    this.state = state;
   }
 
   /**
@@ -167,7 +181,7 @@ export class SpriteSheetHandler {
   }
 }
 
-class Sprite {
+export class Sprite {
   /**
    * @param {string} name
    * @param {{x: number, y:number, w:number, h:number}} frame
@@ -208,20 +222,21 @@ class Sprite {
   }
 }
 
-class Door extends Entity {}
 class Robot extends Entity {
-  update(ctx, index) {
-    this.drawSprite(ctx, this.state.toString(), index);
+  animProps = {
+    curFrame: 0,
+  };
+
+  update(ctx) {
+    this.drawSprite(ctx, this.state.toString(), this.animProps.curFrame++);
   }
-  behave(x, y, ctx, index) {
-    this.movement.x = x;
-    this.movement.y = y;
-    this.update(ctx, index);
+  behave(ctx) {
+    this.update(ctx);
   }
 }
 
-class MovementControler {
-  constructor() {
+export class MovementControler {
+  constructor(handleMovement) {
     this.keyCodes = {
       ArrowLeft: 37,
       ArrowUp: 38,
@@ -230,12 +245,22 @@ class MovementControler {
       Space: 32,
     };
 
+    this.externalEventHandler = handleMovement;
+
     /**
      * Quick way to ket the code of the keys as the key values
      */
     this.codesToKeys = Object.fromEntries(
       Object.entries(this.keyCodes).map((x) => x.reverse()),
     );
+
+    this.codesAsValues = Object.freeze({
+      ArrowLeft: "ArrowLeft",
+      ArrowUp: "ArrowUp",
+      ArrowDown: "ArrowDown",
+      ArrowRight: "ArrowRight",
+      Space: "Space",
+    });
 
     /**
      * Every key from keycodes starts with a false value
@@ -255,8 +280,10 @@ class MovementControler {
    */
   keyDownListner(event) {
     event.preventDefault();
-    if (this.keyCodes[event.code] !== undefined)
+    event.stopPropagation();
+    if (this.keyCodes[event.code] !== undefined) {
       this.keyState[event.code] = true;
+    }
   }
 
   /**
@@ -265,8 +292,10 @@ class MovementControler {
    */
   keyUpListner(event) {
     event.preventDefault();
-    if (this.keyCodes[event.code] !== undefined)
+    event.stopPropagation();
+    if (this.keyCodes[event.code] !== undefined) {
       this.keyState[event.code] = false;
+    }
   }
 
   printKeyStates() {
@@ -274,13 +303,75 @@ class MovementControler {
   }
 }
 
-class Player extends Entity {
-  /**
-   *
-   * @param {MovementControler} movementHandler
-   */
-  constructor(movementHandler) {
-    super();
-    this.mvHandler = movementHandler;
+export class Player {
+  constructor(gameElement) {
+    /**
+     * @property
+     * @type {Entity}
+     */
+    this.gameElement = gameElement;
+    /**
+     * @property
+     * @type {MovementControler}
+     */
+    this.mvHandler = new MovementControler(() => this.handleMovement());
+  }
+
+  handleMovement() {
+    let moving = 4;
+    for (const [action, state] of Object.entries(this.mvHandler.keyState)) {
+      switch (action) {
+        case this.mvHandler.codesAsValues.ArrowUp: {
+          if (state) {
+            this.gameElement.movement.y -= 8;
+            this.gameElement.updateState("run");
+            moving++;
+          } else {
+            this.gameElement.movement.y -= 0;
+            moving--;
+          }
+          break;
+        }
+        case this.mvHandler.codesAsValues.ArrowDown:
+          if (state) {
+            this.gameElement.movement.y += 8;
+            this.gameElement.updateState("run");
+            moving++;
+          } else {
+            this.gameElement.movement.y += 0;
+            moving--;
+          }
+          break;
+        case this.mvHandler.codesAsValues.ArrowLeft:
+          if (state) {
+            this.gameElement.movement.x -= 8;
+            this.gameElement.updateState("runReverse");
+            moving++;
+          } else {
+            this.gameElement.movement.y += 0;
+            moving--;
+          }
+          break;
+        case this.mvHandler.codesAsValues.ArrowRight:
+          if (state) {
+            this.gameElement.movement.x += 8;
+            this.gameElement.updateState("run");
+            moving++;
+          } else {
+            this.gameElement.movement.y += 0;
+            moving--;
+          }
+          break;
+      }
+    }
+    if (
+      this.gameElement.movement.x === 0 ||
+      this.gameElement.movement.y === 0
+    ) {
+      this.gameElement.updateState("idle");
+    }
+    if (moving < 1) {
+      this.gameElement.updateState("idle");
+    }
   }
 }

@@ -1,21 +1,23 @@
-import { Entity } from "./classes.js";
+import { Player } from "./entities.js";
 import { gameState } from "./main.js";
+import { GameMap } from "./maps.js";
 
-const FRAME_RATE = 1000 / 16;
+const FRAME_RATE = 1000 / 20;
 
 /**
- * @param {Entity} robo
+ * @param {Player} player
+ * @param {GameMap} gameMap
  */
-export function TESTGameCycle(robo) {
+export function TESTGameCycle(player, gameMap) {
   let index = 0;
   let last;
   const doIt = function (step) {
-    if (last === undefined) {
-      last = step;
-    }
-    const elapsed = step - last;
-    if (elapsed < FRAME_RATE) return;
-    last = step;
+    // if (last === undefined) {
+    //   last = step;
+    // }
+    // const elapsed = step - last;
+    // if (elapsed < FRAME_RATE) return;
+    // last = step;
 
     gameState.canvasContext.clearRect(
       0,
@@ -23,9 +25,11 @@ export function TESTGameCycle(robo) {
       gameState.canvasSize.width,
       gameState.canvasSize.height,
     );
-    robo.behave(10, 10, gameState.canvasContext, index++);
+    gameMap.render(gameState.canvasContext);
+    player.gameElement.behave(gameState.canvasContext);
+    player.handleMovement();
+
+    setTimeout(doIt, FRAME_RATE);
   };
-  const gameLoogInterval = setInterval(function () {
-    window.requestAnimationFrame(doIt);
-  }, 0);
+  doIt();
 }

@@ -1,5 +1,6 @@
-import { drawImageIntoCanvasTEST } from "./classes.js";
+import { drawImageIntoCanvasTEST } from "./entities.js";
 import { TESTGameCycle } from "./game_cycle.js";
+import { Map1 } from "./maps.js";
 import { parseSecondsToDateString } from "./utils.js";
 
 const GAME_SECTION_ID = Object.freeze("app");
@@ -24,24 +25,23 @@ function createGameCanvas() {
 
   const game_section = document.getElementById(GAME_SECTION_ID);
 
-  const styleWidth = window
-    .getComputedStyle(game_section)
-    .width.replace("px", "");
-  const styleHeight = window
-    .getComputedStyle(game_section)
-    .height.replace("px", "");
+  // const styleWidth = window
+  //   .getComputedStyle(game_section)
+  //   .width.replace("px", "");
+  // const styleHeight = window
+  //   .getComputedStyle(game_section)
+  //   .height.replace("px", "");
 
-  let sizes = {
-    w: Number(styleWidth) * 0.9 + "px",
-    h: Number(styleHeight) * 0.78 + "px",
-  };
+  // let sizes = {
+  //   w: Number(styleWidth) * 0.9 + "px",
+  //   h: Number(styleHeight) * 0.78 + "px",
+  // };
 
-  canvas.setAttribute("width", sizes.w);
-  canvas.setAttribute("height", sizes.h);
+  // canvas.setAttribute("width", sizes.w);
+  // canvas.setAttribute("height", sizes.h);
 
   canvas.setAttribute("id", "canvas");
   gameState.canvasContext = canvas.getContext("2d");
-  canvas.style.backgroundColor = "white";
 
   return canvas;
 }
@@ -129,8 +129,10 @@ async function init() {
   getMainGameSection().appendChild(gameCanvas);
 
   const robo = await drawImageIntoCanvasTEST(gameState.canvasContext);
+  const map = new Map1();
+  await map.loadSpritesAsync();
 
-  TESTGameCycle(robo);
+  TESTGameCycle(robo, map);
 }
 
 window.onload = init();
