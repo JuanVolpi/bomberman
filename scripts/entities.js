@@ -37,13 +37,13 @@ export async function drawImageIntoCanvasTEST(ctx) {
     "idle",
     {
       acl: 0.2,
-      sx: 1,
-      sy: 1,
-      x: 1,
-      y: 1,
+      sx: 0,
+      sy: 0,
+      x: 400,
+      y: 0,
     },
     robotSprites,
-    { scaling: 0.45 },
+    { scaling: 0.425 },
   );
 
   const player = new Player(robo);
@@ -67,7 +67,6 @@ export async function drawImageIntoCanvasTEST(ctx) {
     },
   );
 
-  // robo.drawSprite(ctx, "idle", 0);
   return player;
 }
 
@@ -106,7 +105,9 @@ export class Entity {
     this.imgProps = imgProps;
   }
 
-  update() {}
+  update() {
+    return null;
+  }
   behave() {
     return null;
   }
@@ -318,60 +319,84 @@ export class Player {
   }
 
   handleMovement() {
+    const handleMovementDecelaration = (axisAcceleration) => {
+      if (this.gameElement.movement[axisAcceleration] < 0) {
+        if (this.gameElement.movement[axisAcceleration] + 1.3 > 0)
+          this.gameElement.movement[axisAcceleration] = 0;
+        else this.gameElement.movement[axisAcceleration] += 1.3;
+      }
+      if (this.gameElement.movement[axisAcceleration] > 0) {
+        if (this.gameElement.movement[axisAcceleration] - 1.3 < 0)
+          this.gameElement.movement[axisAcceleration] = 0;
+        else this.gameElement.movement[axisAcceleration] -= 1.3;
+      }
+    };
+
+    const handlePositiveMovementDirection = (
+      state,
+      axisAcceleration,
+      axis,
+      entityState,
+    ) => {
+      if (state) {
+        this.gameElement.movement[axisAcceleration] = Math.min(
+          8,
+          this.gameElement.movement[axisAcceleration] + 2.3,
+        );
+        this.gameElement.updateState(entityState);
+        moving++;
+      } else {
+        handleMovementDecelaration(axisAcceleration);
+      }
+      this.gameElement.movement[axis] +=
+        this.gameElement.movement[axisAcceleration];
+    };
+
+    const handleNegativeMovementDirection = (
+      state,
+      axisAcceleration,
+      axis,
+      entityState,
+    ) => {
+      if (state) {
+        this.gameElement.movement[axisAcceleration] = Math.max(
+          -8,
+          this.gameElement.movement[axisAcceleration] - 2.3,
+        );
+        this.gameElement.updateState(entityState);
+        moving++;
+      } else {
+        handleMovementDecelaration(axisAcceleration);
+      }
+      this.gameElement.movement[axis] +=
+        this.gameElement.movement[axisAcceleration];
+    };
+
     let moving = 4;
     for (const [action, state] of Object.entries(this.mvHandler.keyState)) {
       switch (action) {
-        case this.mvHandler.codesAsValues.ArrowUp: {
-          if (state) {
-            this.gameElement.movement.y -= 8;
-            this.gameElement.updateState("run");
-            moving++;
-          } else {
-            this.gameElement.movement.y -= 0;
-            moving--;
-          }
+        case this.mvHandler.codesAsValues.ArrowUp:
+          handleNegativeMovementDirection(state, "sy", "y", "run");
           break;
-        }
         case this.mvHandler.codesAsValues.ArrowDown:
-          if (state) {
-            this.gameElement.movement.y += 8;
-            this.gameElement.updateState("run");
-            moving++;
-          } else {
-            this.gameElement.movement.y += 0;
-            moving--;
-          }
+          handlePositiveMovementDirection(state, "sy", "y", "run");
           break;
         case this.mvHandler.codesAsValues.ArrowLeft:
-          if (state) {
-            this.gameElement.movement.x -= 8;
-            this.gameElement.updateState("runReverse");
-            moving++;
-          } else {
-            this.gameElement.movement.y += 0;
-            moving--;
-          }
+          handleNegativeMovementDirection(state, "sx", "x", "runReverse");
           break;
         case this.mvHandler.codesAsValues.ArrowRight:
-          if (state) {
-            this.gameElement.movement.x += 8;
-            this.gameElement.updateState("run");
-            moving++;
-          } else {
-            this.gameElement.movement.y += 0;
-            moving--;
-          }
+          handlePositiveMovementDirection(state, "sx", "x", "run");
           break;
       }
     }
     if (
-      this.gameElement.movement.x === 0 ||
-      this.gameElement.movement.y === 0
+      this.gameElement.movement.sx === 0 &&
+      this.gameElement.movement.sy === 0
     ) {
       this.gameElement.updateState("idle");
     }
-    if (moving < 1) {
-      this.gameElement.updateState("idle");
-    }
+    // if (moving < 1) {
+    //   this.gameElement.updateState("idle");
+    // }
   }
 }
