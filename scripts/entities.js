@@ -320,16 +320,17 @@ export class Player {
 
   handleMovement() {
     const handleMovementDecelaration = (axisAcceleration) => {
-      if (this.gameElement.movement[axisAcceleration] < 0) {
-        if (this.gameElement.movement[axisAcceleration] + 1.3 > 0)
-          this.gameElement.movement[axisAcceleration] = 0;
-        else this.gameElement.movement[axisAcceleration] += 1.3;
-      }
-      if (this.gameElement.movement[axisAcceleration] > 0) {
-        if (this.gameElement.movement[axisAcceleration] - 1.3 < 0)
-          this.gameElement.movement[axisAcceleration] = 0;
-        else this.gameElement.movement[axisAcceleration] -= 1.3;
-      }
+      if (this.gameElement.movement[axisAcceleration] < 0)
+        this.gameElement.movement[axisAcceleration] = Math.min(
+          this.gameElement.movement[axisAcceleration] + 1,
+          0,
+        );
+
+      if (this.gameElement.movement[axisAcceleration] > 0)
+        this.gameElement.movement[axisAcceleration] = Math.max(
+          this.gameElement.movement[axisAcceleration] - 1,
+          0,
+        );
     };
 
     const handlePositiveMovementDirection = (
