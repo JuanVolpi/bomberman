@@ -39,8 +39,8 @@ export async function drawImageIntoCanvasTEST(ctx) {
       acl: 0.2,
       sx: 0,
       sy: 0,
-      x: 400,
-      y: 0,
+      x: 34,
+      y: 10,
     },
     robotSprites,
     { scaling: 0.425 },
@@ -103,6 +103,15 @@ export class Entity {
     this.movement = movement;
     this.sprites = sprites;
     this.imgProps = imgProps;
+
+    /**
+     * @property
+     * @type {{x:number,y:number}}
+     */
+    this.hitbox = {
+      x: this.translateCords(movement.x),
+      y: this.translateCords(movement.y),
+    };
   }
 
   update() {
@@ -110,6 +119,13 @@ export class Entity {
   }
   behave() {
     return null;
+  }
+
+  /**
+   * @param {number} cord
+   */
+  translateCords(cord) {
+    return Math.floor(cord / 60);
   }
 
   /**
@@ -316,6 +332,10 @@ export class Player {
      * @type {MovementControler}
      */
     this.mvHandler = new MovementControler(() => this.handleMovement());
+    /**
+     * @property
+     * @type {{x: number, y:number}}
+     */
   }
 
   handleMovement() {
@@ -341,11 +361,10 @@ export class Player {
     ) => {
       if (state) {
         this.gameElement.movement[axisAcceleration] = Math.min(
-          8,
-          this.gameElement.movement[axisAcceleration] + 2.3,
+          6,
+          this.gameElement.movement[axisAcceleration] + 1.5,
         );
         this.gameElement.updateState(entityState);
-        moving++;
       } else {
         handleMovementDecelaration(axisAcceleration);
       }
@@ -361,11 +380,10 @@ export class Player {
     ) => {
       if (state) {
         this.gameElement.movement[axisAcceleration] = Math.max(
-          -8,
-          this.gameElement.movement[axisAcceleration] - 2.3,
+          -6,
+          this.gameElement.movement[axisAcceleration] - 1.5,
         );
         this.gameElement.updateState(entityState);
-        moving++;
       } else {
         handleMovementDecelaration(axisAcceleration);
       }
@@ -373,7 +391,6 @@ export class Player {
         this.gameElement.movement[axisAcceleration];
     };
 
-    let moving = 4;
     for (const [action, state] of Object.entries(this.mvHandler.keyState)) {
       switch (action) {
         case this.mvHandler.codesAsValues.ArrowUp:
@@ -390,14 +407,18 @@ export class Player {
           break;
       }
     }
+
+    this.gameElement.hitbox.x = this.gameElement.translateCords(
+      this.gameElement.movement.x + 55,
+    );
+    this.gameElement.hitbox.y = this.gameElement.translateCords(
+      this.gameElement.movement.y + 100,
+    );
+
     if (
       this.gameElement.movement.sx === 0 &&
       this.gameElement.movement.sy === 0
-    ) {
+    )
       this.gameElement.updateState("idle");
-    }
-    // if (moving < 1) {
-    //   this.gameElement.updateState("idle");
-    // }
   }
 }

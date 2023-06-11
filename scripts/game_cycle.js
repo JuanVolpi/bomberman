@@ -26,8 +26,12 @@ export function TESTGameCycle(player, gameMap) {
       gameState.canvasSize.height,
     );
     gameMap.render(gameState.canvasContext);
+
     player.gameElement.behave(gameState.canvasContext);
     player.handleMovement();
+
+    gameMap.entityMapBoundsCheck(player.gameElement);
+    gameMap.entityCheckGameObjectsColision(player.gameElement);
 
     setTimeout(doIt, FRAME_RATE);
   };

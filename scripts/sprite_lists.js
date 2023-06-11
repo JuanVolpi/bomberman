@@ -130,5 +130,9 @@ export const GAME_ASSETS = {
   borderTile: ["Tiles/BGTile (1).png"],
   borderTileVertical: ["Tiles/BGTile (2).png"],
   bgTile: ["Tiles/BGTile (6).png"],
+  bgTileTwo: ["Tiles/BGTile (5).png"],
   box: ["Objects/Box.png"],
+  bottomBorder: ["Tiles/Tile (2).png"],
+  explosionBarrel: ["Objects/Barrel (2).png"],
+  acidBarrel: ["Objects/Barrel (1).png"],
 };
