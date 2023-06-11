@@ -1,11 +1,16 @@
 import { Entity, SpriteSheetHandler } from "./entities.js";
 import { GAME_ASSETS } from "./sprite_lists.js";
 
+/**
+ * @typedef {{type: number, x: number, y: number}} MapElement
+ */
+
 export class GameMap {
   constructor() {
     this.gameBGMap = undefined;
     this.gameMap = undefined;
     this.gameObjects = undefined;
+    this.parsedGameMap = undefined;
   }
 
   render() {
@@ -23,15 +28,65 @@ export class GameMap {
    * @param {Entity} entity
    */
   entityCheckGameObjectsColision(entity) {
-    let pos = this.gameMap[entity.hitbox.y + 0][entity.hitbox.x + 0];
-
-    switch (pos) {
-      case 1:
-        if (entity.movement.sx !== 0) entity.movement.sx -= 6;
-        if (entity.movement.sy !== 0) entity.movement.sy -= 6;
-        // entity.movement.y -= 60;
-        break;
+    let posX = entity.hitbox.x;
+    let posY = entity.hitbox.y;
+    if (entity.movement.sx > 0) {
+      posX += 1;
+    } else if (entity.movement.sx < 0) {
+      posX -= 1;
     }
+
+    if (entity.movement.sy > 0) {
+      posY += 1;
+    } else if (entity.movement.sy < 0) {
+      posY -= 1;
+    }
+
+    /**
+     * @type {MapElement}
+     */
+    let pos = this.parsedGameMap[posY][posX];
+
+    // console.table(this.parsedGameMap[entity.hitbox.y][entity.hitbox.x]);
+
+    if (pos !== undefined && pos.type === 1) {
+      if (entity.movement.sy < 0) {
+        console.log("@@");
+        entity.movement.sy += 5.7;
+      }
+      if (entity.movement.sy > 0) {
+        if (pos.y - entity.movement.y <= 10) {
+          entity.movement.sy -= 3.5;
+        }
+      }
+
+      if (entity.movement.sx < 0) {
+        if (entity.movement.x - pos.x <= 35) {
+          entity.movement.sx += 6;
+        }
+      }
+      if (entity.movement.sx > 0) {
+        entity.movement.sx -= 3.5;
+      }
+    }
+  }
+
+  parseGameMap() {
+    let map = [];
+    for (let i = 0; i < this.gameMap.length; i++) {
+      map.push(new Array(15));
+      for (let j = 0; j < this.gameMap[i].length; j++) {
+        let multiplier = 60;
+        let multiplierX = j * multiplier;
+        let multiplierY = i * multiplier - 120;
+        map[i][j] = {
+          type: this.gameMap[i][j],
+          x: multiplierX,
+          y: multiplierY,
+        };
+      }
+    }
+    return map;
   }
 
   /**
@@ -71,6 +126,7 @@ export class Map1 extends GameMap {
       [0, 2, 2, 2, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 0],
       [0, 4, 4, 3, 4, 3, 4, 4, 4, 3, 4, 3, 4, 4, 0],
     ];
+    this.parsedGameMap = this.parseGameMap();
     this.gameObjects = new Array(15).fill(new Array(15).fill(undefined));
 
     this.sprites = "/assets/images/sprites/GameAssets.png";

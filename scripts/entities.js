@@ -394,31 +394,36 @@ export class Player {
     for (const [action, state] of Object.entries(this.mvHandler.keyState)) {
       switch (action) {
         case this.mvHandler.codesAsValues.ArrowUp:
+          if (this.gameElement.movement.sx !== 0) break;
           handleNegativeMovementDirection(state, "sy", "y", "run");
           break;
         case this.mvHandler.codesAsValues.ArrowDown:
+          if (this.gameElement.movement.sx !== 0) break;
           handlePositiveMovementDirection(state, "sy", "y", "run");
           break;
         case this.mvHandler.codesAsValues.ArrowLeft:
+          if (this.gameElement.movement.sy !== 0) break;
           handleNegativeMovementDirection(state, "sx", "x", "runReverse");
           break;
         case this.mvHandler.codesAsValues.ArrowRight:
+          if (this.gameElement.movement.sy !== 0) break;
           handlePositiveMovementDirection(state, "sx", "x", "run");
           break;
       }
     }
-
-    this.gameElement.hitbox.x = this.gameElement.translateCords(
-      this.gameElement.movement.x + 55,
-    );
-    this.gameElement.hitbox.y = this.gameElement.translateCords(
-      this.gameElement.movement.y + 100,
-    );
 
     if (
       this.gameElement.movement.sx === 0 &&
       this.gameElement.movement.sy === 0
     )
       this.gameElement.updateState("idle");
+    else {
+      this.gameElement.hitbox.x = this.gameElement.translateCords(
+        this.gameElement.movement.x + 30,
+      );
+      this.gameElement.hitbox.y = this.gameElement.translateCords(
+        this.gameElement.movement.y + 100,
+      );
+    }
   }
 }
