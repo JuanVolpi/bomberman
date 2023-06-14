@@ -9,15 +9,11 @@ const FRAME_RATE = 1000 / 20;
  * @param {GameMap} gameMap
  */
 export function TESTGameCycle(player, gameMap) {
-  let index = 0;
-  let last;
+  gameState.gameObjectiveMap = gameMap.gameObjects;
+  gameState.gameMapChange = gameMap.externMapUpdateGameObjects;
+
   const doIt = function (step) {
-    // if (last === undefined) {
-    //   last = step;
-    // }
-    // const elapsed = step - last;
-    // if (elapsed < FRAME_RATE) return;
-    // last = step;
+    if (!gameState.running) return;
 
     gameState.canvasContext.clearRect(
       0,
@@ -30,8 +26,17 @@ export function TESTGameCycle(player, gameMap) {
     player.gameElement.behave(gameState.canvasContext);
     player.handleMovement();
 
+    for (let i = 0; i < gameState.gameMapEntities.length; ++i) {
+      if (gameState.gameMapEntities[i].state === "dead") {
+        gameState.gameMapEntities.splice(i, 1);
+      }
+      if (gameState.gameMapEntities[i] !== undefined)
+        gameState.gameMapEntities[i].behave(gameState.canvasContext);
+    }
+
     gameMap.entityMapBoundsCheck(player.gameElement);
     gameMap.entityCheckGameObjectsColision(player.gameElement);
+    gameMap.handleDestructions();
 
     setTimeout(doIt, FRAME_RATE);
   };

@@ -1,20 +1,42 @@
-import { drawImageIntoCanvasTEST } from "./entities.js";
+import { setupPlayerEntity } from "./entities.js";
 import { TESTGameCycle } from "./game_cycle.js";
 import { Map1 } from "./maps.js";
 import { parseSecondsToDateString } from "./utils.js";
 
 const GAME_SECTION_ID = Object.freeze("app");
 
-export const gameState = {
+export let gameState = {
   canvasContext: undefined,
-  gameMapEntities: {},
-  gameEntities: {},
+  gameObjectiveMap: [],
+  gameMapEntities: [],
+  gameEntities: [],
+  gameMapChange: undefined,
+  destructions: [],
+  switchEnabled: 0,
   wonState: false,
   score: 0,
   time: 0,
+  power: 2,
+  running: false,
   gameTimerId: null,
   canvasSize: { width: undefined, height: undefined },
 };
+
+function resetGameState() {
+  gameState = {
+    gameObjectiveMap: [],
+    gameMapEntities: [],
+    gameEntities: [],
+    destructions: [],
+    wonState: false,
+    score: 0,
+    time: 0,
+    power: 2,
+    running: false,
+    gameTimerId: null,
+    ...gameState,
+  };
+}
 
 /**
  *  Create the game canvas with a given height and width
@@ -23,34 +45,10 @@ export const gameState = {
 function createGameCanvas() {
   const canvas = document.getElementById("canvas");
 
-  const game_section = document.getElementById(GAME_SECTION_ID);
-
-  // const styleWidth = window
-  //   .getComputedStyle(game_section)
-  //   .width.replace("px", "");
-  // const styleHeight = window
-  //   .getComputedStyle(game_section)
-  //   .height.replace("px", "");
-
-  // let sizes = {
-  //   w: Number(styleWidth) * 0.9 + "px",
-  //   h: Number(styleHeight) * 0.78 + "px",
-  // };
-
-  // canvas.setAttribute("width", sizes.w);
-  // canvas.setAttribute("height", sizes.h);
-
   canvas.setAttribute("id", "canvas");
   gameState.canvasContext = canvas.getContext("2d");
 
   return canvas;
-}
-
-/**
- * @returns {HTMLCanvasElement}
- */
-function getCanvasElement() {
-  return document.getElementById("canvas");
 }
 
 /**
@@ -67,23 +65,34 @@ function updateScreenGameInformation() {
     " " + parseSecondsToDateString(gameState.time);
 }
 
-function startGame() {
+async function startGame() {
   gameState.gameTimerId = setInterval(function () {
     gameState.time += 1;
     updateScreenGameInformation();
   }, 1000);
+  const robo = await setupPlayerEntity(gameState.canvasContext);
+  const map = new Map1();
+  await map.loadSpritesAsync();
+
+  gameState.running = true;
+
+  TESTGameCycle(robo, map);
 }
 
 function stopGame() {
+  gameState.running = false;
   clearInterval(gameState.gameTimerId);
 }
 
 function resetGame() {
+  gameState.running = false;
+  resetGameState();
   clearInterval(gameState.gameTimerId);
   gameState.gameTimerId = null;
   gameState.time = 0;
   gameState.score = 0;
   updateScreenGameInformation();
+  startGame();
 }
 
 /**
@@ -127,12 +136,6 @@ async function init() {
   };
 
   getMainGameSection().appendChild(gameCanvas);
-
-  const robo = await drawImageIntoCanvasTEST(gameState.canvasContext);
-  const map = new Map1();
-  await map.loadSpritesAsync();
-
-  TESTGameCycle(robo, map);
 }
 
 window.onload = init();

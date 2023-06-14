@@ -1,13 +1,17 @@
 import {
+  BOMB_SPRITES,
   DINO_SPRITE_ANIM_LIST,
+  FLAME_SPRITES,
   ROBOT_SPRITE_ANIM_LIST,
 } from "./sprite_lists.js";
+
+import { gameState } from "./main.js";
 
 /**
  *
  * @param {CanvasRenderingContext2D} ctx
  */
-export async function drawImageIntoCanvasTEST(ctx) {
+export async function setupPlayerEntity(ctx) {
   const sprites = "/assets/images/sprites/Robot.png";
   const spriteData = "/assets/images/sprites/Robot.json";
 
@@ -30,13 +34,11 @@ export async function drawImageIntoCanvasTEST(ctx) {
   );
 
   let dinoSprites = new Map();
-  // dinoSprites.set("idle", shs.spriteLoader(dino_SPRITE_ANIM_LIST.idle));
   dinoSprites.set("dead", shsDino.spriteLoader(DINO_SPRITE_ANIM_LIST.dead));
 
   const robo = new Robot(
     "idle",
     {
-      acl: 0.2,
       sx: 0,
       sy: 0,
       x: 34,
@@ -47,25 +49,6 @@ export async function drawImageIntoCanvasTEST(ctx) {
   );
 
   const player = new Player(robo);
-
-  window.addEventListener(
-    "keydown",
-    function (event) {
-      player.mvHandler.keyDownListner(event);
-    },
-    {
-      capture: true,
-    },
-  );
-  window.addEventListener(
-    "keyup",
-    function (event) {
-      player.mvHandler.keyUpListner(event);
-    },
-    {
-      capture: true,
-    },
-  );
 
   return player;
 }
@@ -78,19 +61,19 @@ export const BasicEntityStates = Object.freeze({
 });
 
 /**
- * @class
+ * @class Entity
  * @constructor
  * @public
  *
  * @property {EntityState} entiState
- * @property {{x:number,y:number,sx:number,sy:number,acl:number}} movement
+ * @property {{x:number,y:number,sx:number,sy:number}} movement
  * @property {Map} sprites
  * @property {{scaling:number}} imgProps
  */
 export class Entity {
   /**
    * @param {String} entiState
-   * @param {{x:number,y:number,sx:number,sy:number,acl:number}} movement
+   * @param {{x:number,y:number,sx:number,sy:number}} movement
    * @param {Map} sprites
    * @param {{scaling:number}} imgProps
    */
@@ -98,7 +81,7 @@ export class Entity {
     this.state = entiState;
     /**
      * @property
-     * @type {{x:number,y:number,sx:number,sy:number,acl:number}}
+     * @type {{x:number,y:number,sx:number,sy:number}}
      */
     this.movement = movement;
     this.sprites = sprites;
@@ -252,7 +235,7 @@ class Robot extends Entity {
   }
 }
 
-export class MovementControler {
+export class KeyBoardControler {
   constructor(handleMovement) {
     this.keyCodes = {
       ArrowLeft: 37,
@@ -260,6 +243,7 @@ export class MovementControler {
       ArrowDown: 40,
       ArrowRight: 39,
       Space: 32,
+      KeyF: 70,
     };
 
     this.externalEventHandler = handleMovement;
@@ -277,6 +261,7 @@ export class MovementControler {
       ArrowDown: "ArrowDown",
       ArrowRight: "ArrowRight",
       Space: "Space",
+      KeyF: "KeyF",
     });
 
     /**
@@ -288,6 +273,7 @@ export class MovementControler {
       ArrowDown: false,
       ArrowRight: false,
       Space: false,
+      KeyF: false,
     };
   }
 
@@ -311,12 +297,95 @@ export class MovementControler {
     event.preventDefault();
     event.stopPropagation();
     if (this.keyCodes[event.code] !== undefined) {
+      this.externalEventHandler();
       this.keyState[event.code] = false;
     }
   }
 
   printKeyStates() {
     console.table(this.keyState);
+  }
+}
+
+export class Bomb extends Entity {
+  animProps = {
+    curFrame: 0,
+    explosionLastFrame: 9,
+    seqLastFrame: 39,
+    flameStart: 12,
+    flamePlacementIndex: 0,
+  };
+
+  /**
+   * @param {number} power
+   */
+  constructor(power, entiState, movement, sprites, imgProps) {
+    super(entiState, movement, sprites, imgProps);
+    this.power = power;
+  }
+
+  /**
+   * @param {CanvasRenderingContext2D} cnvsContext
+   * @param {string} spriteList
+   * @param {number} spriteIndex
+   */
+  drawSprite(cnvsContext, spriteList, spriteIndex) {
+    this.sprites
+      .get(spriteList)
+      [spriteIndex % this.sprites.get(spriteList).length].drawSprite(
+        cnvsContext,
+        this.movement.x - 40,
+        this.movement.y - 64,
+        this.imgProps.scaling,
+        this.imgProps.scaling,
+      );
+  }
+
+  async update(ctx) {
+    if (this.state === "explosion") {
+      if (this.animProps.curFrame + 1 < this.animProps.explosionLastFrame) {
+        this.drawSprite(ctx, this.state, this.animProps.curFrame++);
+      }
+    } else if (this.state === "sequence") {
+      if (this.animProps.curFrame + 1 < this.animProps.seqLastFrame) {
+        this.drawSprite(ctx, this.state, this.animProps.curFrame++);
+        if (this.animProps.curFrame === 30) {
+          let tempDestructionMask = [];
+          for (let i = 0; i <= this.power; i++) {
+            gameState.gameMapEntities.push(
+              await createTestFlame(
+                Math.max(32, (this.hitbox.x + i) * 60 - 30),
+                Math.max(10, this.hitbox.y * 60),
+                "big",
+              ),
+            );
+            tempDestructionMask.push([
+              Math.max(0, this.hitbox.x + i),
+              Math.max(0, this.hitbox.y + 1),
+            ]);
+          }
+          for (let j = 0 - (this.power - 1); j < this.power; ++j) {
+            gameState.gameMapEntities.push(
+              await createTestFlame(
+                Math.max(32, (this.hitbox.x + 1) * 60 - 30),
+                Math.max(10, (this.hitbox.y + j) * 60),
+                "big",
+              ),
+            );
+            tempDestructionMask.push([
+              Math.max(0, this.hitbox.x + 1),
+              Math.max(0, this.hitbox.y + j + 1),
+            ]);
+          }
+          gameState.destructions.push(tempDestructionMask);
+        }
+      } else {
+        this.state = "dead";
+      }
+    } else this.drawSprite(ctx, this.state, this.animProps.curFrame++);
+  }
+  behave(ctx) {
+    this.update(ctx);
   }
 }
 
@@ -329,13 +398,109 @@ export class Player {
     this.gameElement = gameElement;
     /**
      * @property
-     * @type {MovementControler}
+     * @type {KeyBoardControler}
      */
-    this.mvHandler = new MovementControler(() => this.handleMovement());
-    /**
-     * @property
-     * @type {{x: number, y:number}}
-     */
+    this.keyBoardHandler = new KeyBoardControler(() => {
+      this.checkPlayableInput();
+    });
+
+    this.stats = {
+      life: 3,
+      level: 1,
+      bombCount: 4,
+      restockId: undefined,
+    };
+
+    this.registerEventHandlers([
+      {
+        name: "keydown",
+        handler: (e) => this.keyBoardHandler.keyDownListner(e),
+      },
+      { name: "keyup", handler: (e) => this.keyBoardHandler.keyUpListner(e) },
+    ]);
+  }
+
+  /**
+   * @param {{name: string, handler: Function}[]} events
+   */
+  registerEventHandlers(events) {
+    for (const eve of events) {
+      window.addEventListener(eve.name, (event) => eve.handler(event), {
+        capture: true,
+      });
+    }
+  }
+
+  async checkPlayableInput() {
+    if (this.keyBoardHandler.keyState.Space) {
+      await this.placeBomb();
+    }
+    if (this.keyBoardHandler.keyState.KeyF) {
+      console.log("SSS");
+      this.checkDoorControlOperation();
+    }
+  }
+
+  checkDoorControlOperation() {
+    console.log(
+      gameState.gameObjectiveMap[this.gameElement.hitbox.y][
+        this.gameElement.hitbox.x
+      ],
+    );
+    if (
+      gameState.gameObjectiveMap[this.gameElement.hitbox.y][
+        this.gameElement.hitbox.x
+      ] !== undefined &&
+      gameState.gameObjectiveMap[this.gameElement.hitbox.y][
+        this.gameElement.hitbox.x
+      ] === 11
+    ) {
+      gameState.score += 12;
+      gameState.switchEnabled++;
+      gameState.gameMapChange(
+        this.gameElement.hitbox.x,
+        this.gameElement.hitbox.y,
+        12,
+      );
+      if (gameState.switchEnabled >= 4) {
+        console.log("CAN GOO");
+      }
+    }
+    console.log(gameState);
+  }
+
+  checkRemainingBombCount() {
+    if (this.stats.bombCount <= 0) {
+      clearInterval(this.stats.restockId);
+      this.stats.restockId = setInterval(() => {
+        ++this.stats.bombCount;
+        if (this.stats.bombCount === 4) {
+          clearInterval(this.stats.restockId);
+          this.stats.restockId = undefined;
+        }
+      }, 1000);
+    }
+  }
+
+  async placeBomb() {
+    if (this.stats.bombCount <= 0) return;
+    this.stats.bombCount = Math.max(0, --this.stats.bombCount);
+    this.checkRemainingBombCount();
+
+    console.table(this.gameElement.hitbox);
+
+    gameState.gameMapEntities.push(
+      await createBomb(
+        Math.max(32, this.gameElement.hitbox.x * 60 - 30),
+        Math.max(10, this.gameElement.hitbox.y * 60 - 50),
+        "sequence",
+        gameState.power,
+      ),
+    );
+
+    if (gameState.score % 20 === 0 && gameState.score >= 20) {
+      gameState.power += 1;
+    }
   }
 
   handleMovement() {
@@ -391,21 +556,23 @@ export class Player {
         this.gameElement.movement[axisAcceleration];
     };
 
-    for (const [action, state] of Object.entries(this.mvHandler.keyState)) {
+    for (const [action, state] of Object.entries(
+      this.keyBoardHandler.keyState,
+    )) {
       switch (action) {
-        case this.mvHandler.codesAsValues.ArrowUp:
+        case this.keyBoardHandler.codesAsValues.ArrowUp:
           if (this.gameElement.movement.sx !== 0) break;
           handleNegativeMovementDirection(state, "sy", "y", "run");
           break;
-        case this.mvHandler.codesAsValues.ArrowDown:
+        case this.keyBoardHandler.codesAsValues.ArrowDown:
           if (this.gameElement.movement.sx !== 0) break;
           handlePositiveMovementDirection(state, "sy", "y", "run");
           break;
-        case this.mvHandler.codesAsValues.ArrowLeft:
+        case this.keyBoardHandler.codesAsValues.ArrowLeft:
           if (this.gameElement.movement.sy !== 0) break;
           handleNegativeMovementDirection(state, "sx", "x", "runReverse");
           break;
-        case this.mvHandler.codesAsValues.ArrowRight:
+        case this.keyBoardHandler.codesAsValues.ArrowRight:
           if (this.gameElement.movement.sy !== 0) break;
           handlePositiveMovementDirection(state, "sx", "x", "run");
           break;
@@ -426,4 +593,96 @@ export class Player {
       );
     }
   }
+}
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} power
+ * @param {"bombOn" | "idle" | "explosion" | "sequence"} state
+ * @returns A Bomb element
+ */
+export async function createBomb(x, y, state, power) {
+  const spritesBomb = "/assets/images/sprites/Bomb.png";
+  const spriteDataBomb = "/assets/images/sprites/Bomb.json";
+
+  const shsBomb = new SpriteSheetHandler(spritesBomb, spriteDataBomb);
+  await shsBomb.loadSpriteSheetDataAsync();
+
+  let bombSprites = new Map();
+  bombSprites.set("bombOn", shsBomb.spriteLoader(BOMB_SPRITES.bombOn));
+  bombSprites.set("idle", shsBomb.spriteLoader(BOMB_SPRITES.idle));
+  bombSprites.set("explosion", shsBomb.spriteLoader(BOMB_SPRITES.explosion));
+  bombSprites.set("sequence", shsBomb.spriteLoader(BOMB_SPRITES.sequence));
+
+  return new Bomb(
+    power,
+    state,
+    {
+      sx: 0,
+      sy: 0,
+      x: x,
+      y: y,
+    },
+    bombSprites,
+    { scaling: 2 },
+  );
+}
+
+export class Flame extends Entity {
+  animProps = {
+    curFrame: 0,
+    endFrame: FLAME_SPRITES.bigFlame.length - 20,
+  };
+
+  /**
+   * @param {CanvasRenderingContext2D} cnvsContext
+   * @param {string} spriteList
+   * @param {number} spriteIndex
+   */
+  drawSprite(cnvsContext, spriteList, spriteIndex) {
+    this.sprites
+      .get(spriteList)
+      [spriteIndex % this.sprites.get(spriteList).length].drawSprite(
+        cnvsContext,
+        this.movement.x + 20,
+        this.movement.y + 57,
+        this.imgProps.scaling,
+        this.imgProps.scaling,
+      );
+  }
+
+  update(ctx) {
+    if (this.animProps.curFrame + 1 > this.animProps.endFrame) {
+      this.state = "dead";
+      return;
+    }
+    this.drawSprite(ctx, this.state, this.animProps.curFrame++);
+  }
+  behave(ctx) {
+    this.update(ctx);
+  }
+}
+
+export async function createTestFlame(x, y, state) {
+  const spritesFlame = "/assets/images/sprites/FireBlast.png";
+  const spriteDataFlame = "/assets/images/sprites/FireBlast.json";
+
+  const shsFlame = new SpriteSheetHandler(spritesFlame, spriteDataFlame);
+  await shsFlame.loadSpriteSheetDataAsync();
+
+  let flamesprites = new Map();
+  flamesprites.set("big", shsFlame.spriteLoader(FLAME_SPRITES.bigFlame));
+
+  return new Flame(
+    state,
+    {
+      sx: 0,
+      sy: 0,
+      x: x,
+      y: y,
+    },
+    flamesprites,
+    { scaling: 1.3 },
+  );
 }
